@@ -1,0 +1,28 @@
+{
+  "name": "hashed-fs",
+  "version": "1.0.0",
+  "description": "hashed-fs",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --reporter spec ./test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kaelzhang/node-hashed-fs.git"
+  },
+  "keywords": [
+    "hashed-fs"
+  ],
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "author": "kaelzhang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kaelzhang/node-hashed-fs/issues"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*"
+  }
+}
