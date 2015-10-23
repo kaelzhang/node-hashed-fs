@@ -11,7 +11,13 @@
     "url": "git://github.com/kaelzhang/node-hashed-fs.git"
   },
   "keywords": [
-    "hashed-fs"
+    "hashed-fs",
+    "fs",
+    "file",
+    "system",
+    "hashed",
+    "crypto",
+    "cache"
   ],
   "engines": {
     "node": ">=0.10.0"
@@ -24,5 +30,9 @@
   "devDependencies": {
     "mocha": "*",
     "chai": "*"
+  },
+  "dependencies": {
+    "fs-extra": "^0.24.0",
+    "lrucache": "^0.3.0"
   }
 }
