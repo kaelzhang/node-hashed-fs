@@ -33,6 +33,8 @@
   },
   "dependencies": {
     "fs-extra": "^0.24.0",
-    "lrucache": "^0.3.0"
+    "lrucache": "^0.3.0",
+    "object-access": "^1.0.4",
+    "wrap-as-async": "^1.0.4"
   }
 }
