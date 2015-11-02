@@ -64,14 +64,14 @@ Hashed.prototype.readFile = function(filename, options, callback) {
         return callback(err);
       }
 
-      callback(null, content, stat)
+      callback(null, content, stat);
     });
   });
 };
 
 
 // @param {function(err, stat, skipped)}
-Hashed.prototype.copy = function(filename, dest_dir, callback) {
+Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
   var self = this;
 
   this.stat(filename, function (err, stat, cached) {
@@ -80,7 +80,7 @@ Hashed.prototype.copy = function(filename, dest_dir, callback) {
     }
 
     // If cached, skip copying
-    if (cached) {
+    if (cached && !force) {
       return callback(null, stat, true);
     }
 
