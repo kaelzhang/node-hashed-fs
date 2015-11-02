@@ -1,6 +1,6 @@
 {
   "name": "hashed-fs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "hashed-fs",
   "main": "index.js",
   "scripts": {
@@ -34,7 +34,9 @@
   "dependencies": {
     "async": "^1.5.0",
     "fs-extra": "^0.24.0",
+    "graceful-fs": "^4.1.2",
     "lrucache": "^0.3.0",
+    "make-array": "^0.1.2",
     "object-access": "^1.0.4",
     "wrap-as-async": "^1.0.4"
   }
