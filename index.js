@@ -5,13 +5,18 @@ module.exports = hashed;
 var crypto = require('crypto');
 var fs = require('fs');
 var node_path = require('path');
+var EventEmitter = require('events');
+var util = require('util');
 
 var fse = require('fs-extra');
 var make_array = require('make-array');
 var wrap = require('wrap-as-async');
+var async = require('async');
 
 var cache = require('./lib/cache');
 
+
+// Method to 
 function crypto (filename) {
   var done = this.async();
 
@@ -23,52 +28,119 @@ function crypto (filename) {
   .on('error', done);
   .on('end', function () {
     var hash = md5.digest('hex');
-    done(null, hash);
+    done(null, hash.slice(0, 7));
+  });
+}
+
+
+var REGEX_EXT = /\.[a-z0-9]$/;
+function decorate (basename, hash) {
+  return basename.replace(REGEX_EXT, function (ext) {
+    return '.' + hash + ext;
   });
 }
 
 // @param {Object} options
-// - cache_file: `path` the cache to save the hashes
 // - crypto: `function()`
 function Hashed (options) {
   this.options = options;
   this.options.crypto = wrap(options.options.crypto || crypto);
+  this.options.decorate = wrap(options.options.decorate || decorate);
 }
+
+util.inherits(Hashed, EventEmitter);
 
 Hashed.cache = {};
 
-// @param {function(err, data, file_hash)}
-Hashed.prototype.readFile = function(filename, callback) {
-  
-};
-
-
-// @param {function(exists, file_hash)}
-Hashed.prototype.exists = function(filename, callback) {
-  // body...
-};
-
-
-// @param {function(err, file_hash)}
-Hashed.prototype.copy = function(filename, dest_dir, callback) {
-  // body...
-};
-
-
-Hashed.prototype.stat = function(filename, callback) {
-  fs.stat(filename, function (err, stat) {
+// @param {function(err, data, stat)}
+Hashed.prototype.readFile = function(filename, options, callback) {
+  this.stat(file, function (err, stat) {
     if (err) {
       return callback(err);
     }
 
-    this._dealStat()
+    fs.readFile(filename, options, function (err, content) {
+      if (err) {
+        return callback(err);
+      }
 
-  }.bind(this));
+      callback(null, content, stat)
+    });
+  });
 };
 
 
-Hashed.prototype._dealStat = function() {
-  // body...
+// @param {function(err, stat, skipped)}
+Hashed.prototype.copy = function(filename, dest_dir, callback) {
+  var self = this;
+
+  this.stat(filename, function (err, stat, cached) {
+    if (err) {
+      return callback(err);
+    }
+
+    // If cached, skip copying
+    if (cached) {
+      return callback(null, stat, true);
+    }
+
+    var counter = 2;
+    var basename = node_path.basename(filename);
+    async.parallel([
+      function (done) {
+        fse.copy(filename, node_path.join(dest_dir, basename), done);
+      },
+
+      async.waterfall([
+        function (sub_done) {
+          self.options.decorate(basename, hashed, sub_done);
+        },
+
+        function (decorated, sub_done) {
+          var dest = node_path.join(dest_dir, decorated_basename);
+          fse.copy(filename, dest, sub_done);
+        }
+      ], done)
+      
+    ], function (err) {
+      if (err) {
+        return callback(err);
+      }
+
+      callback(err, stat, false);
+    });
+  });
+};
+
+
+// @param {function(err, stat, cached)} callback
+Hashed.prototype.stat = function(filename, callback) {
+  filename = node_path.resolve(filename);
+
+  var self = this;
+  fs.stat(filename, function (err, stat) {
+    if (err) {
+      cache.remove(filename);
+      return callback(err);
+    }
+
+    var mtime = stat.mtime;
+    var info = cache.get(filename, mtime);
+    
+    if (info) {
+      return callback(null, info, true);
+    }
+
+    self._createHashed(filename, function (err, hash) {
+      if (err) {
+        return callback(err);
+      }
+
+      stat.hash = hash;
+      cache.set(filename, mtime, stat);
+      callback(null, stat, false);
+    });
+  });
 };
 
 
@@ -84,41 +156,3 @@ Hashed.prototype._createHashed = function(filename, callback) {
 
   this.options.crypto(filename, once);
 };
-
-
-var STR_NOT_FOUND = 'NOT_FOUND';
-
-// @private
-Hashed.prototype._initCache = function(filename, callback) {
-  filename = node_path.resolve(filename);
-  fs.exists(filename, function (exists) {
-    if (!exists) {
-      
-      return callback(STR_NOT_FOUND);
-    }
-
-    fs.stat(filename, function (err, stat) {
-      if (err) {
-        return callback(err);
-      }
-
-      
-    });
-  });
-};
-
-
-['readFile', 'exists', 'copy', 'stat'].forEach(function (name) {
-  var method = Hashed.prototype[name];
-  Hashed.prototype[name] = function () {
-    var args = make_array(arguments);
-    var callback = args[args.length - 1];
-    var filename = args[0];
-
-    this._initCache(filename, function (err, info) {
-      if (err) {
-        return callback(err);
-      }
-    });
-  }
-});
