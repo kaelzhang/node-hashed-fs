@@ -1,9 +1,15 @@
 'use strict';
 
 module.exports = hashed;
+hashed.Hashed = Hashed;
+
+function hashed (options) {
+  options || (options = {});
+  return new Hashed(options);
+}
 
 var crypto = require('crypto');
-var fs = require('fs');
+var fs = require('graceful-fs');
 var node_path = require('path');
 var EventEmitter = require('events');
 var util = require('util');
@@ -17,15 +23,15 @@ var cache = require('./lib/cache');
 
 
 // Method to 
-function crypto (filename) {
+function crypto_file (filename) {
   var done = this.async();
 
   var md5 = crypto.createHash('md5');
-  var rs = fs.createReadStream(filename);
+  var rs = fs.createReadStream(filename)
   .on('data', function (data) {
     md5.update(data);
   })
-  .on('error', done);
+  .on('error', done)
   .on('end', function () {
     var hash = md5.digest('hex');
     done(null, hash.slice(0, 7));
@@ -44,8 +50,8 @@ function decorate (basename, hash) {
 // - crypto: `function()`
 function Hashed (options) {
   this.options = options;
-  this.options.crypto = wrap(options.options.crypto || crypto);
-  this.options.decorate = wrap(options.options.decorate || decorate);
+  this.options.crypto = wrap(options.crypto || crypto_file);
+  this.options.decorate = wrap(options.decorate || decorate);
 }
 
 util.inherits(Hashed, EventEmitter);
@@ -54,7 +60,12 @@ Hashed.cache = {};
 
 // @param {function(err, data, stat)}
 Hashed.prototype.readFile = function(filename, options, callback) {
-  this.stat(file, function (err, stat) {
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+
+  this.stat(filename, function (err, stat) {
     if (err) {
       return callback(err);
     }
@@ -124,9 +135,9 @@ Hashed.prototype.stat = function(filename, callback) {
       return callback(err);
     }
 
-    var mtime = stat.mtime;
+    var mtime = + stat.mtime;
     var info = cache.get(filename, mtime);
-    
+
     if (info) {
       return callback(null, info, true);
     }
