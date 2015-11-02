@@ -11,8 +11,6 @@ function hashed (options) {
 var crypto = require('crypto');
 var fs = require('graceful-fs');
 var node_path = require('path');
-var EventEmitter = require('events');
-var util = require('util');
 
 var fse = require('fs-extra');
 var make_array = require('make-array');
@@ -53,8 +51,6 @@ function Hashed (options) {
   this.options.crypto = wrap(options.crypto || crypto_file);
   this.options.decorate = wrap(options.decorate || decorate);
 }
-
-util.inherits(Hashed, EventEmitter);
 
 Hashed.cache = {};
 
