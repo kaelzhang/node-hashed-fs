@@ -2,6 +2,7 @@
 
 module.exports = hashed;
 hashed.Hashed = Hashed;
+hashed.cache = require('./lib/cache');
 
 function hashed (options) {
   options || (options = {});
@@ -17,23 +18,21 @@ var make_array = require('make-array');
 var wrap = require('wrap-as-async');
 var async = require('async');
 
-var cache = require('./lib/cache');
 
-
-// Method to 
+// Default method to crypto a file according to the file content.
 function crypto_file (filename) {
   var done = this.async();
 
   var md5 = crypto.createHash('md5');
   var rs = fs.createReadStream(filename)
-  .on('data', function (data) {
-    md5.update(data);
-  })
-  .on('error', done)
-  .on('end', function () {
-    var hash = md5.digest('hex');
-    done(null, hash.slice(0, 7));
-  });
+    .on('data', function (data) {
+      md5.update(data);
+    })
+    .on('error', done)
+    .on('end', function () {
+      var hash = md5.digest('hex');
+      done(null, hash.slice(0, 7));
+    });
 }
 
 
@@ -44,15 +43,16 @@ function decorate (basename, hash) {
   });
 }
 
+
 // @param {Object} options
 // - crypto: `function()`
 function Hashed (options) {
   this.options = options;
   this.options.crypto = wrap(options.crypto || crypto_file);
   this.options.decorate = wrap(options.decorate || decorate);
+  this.cache = hashed.cache(this.options.cache_file);
 }
 
-Hashed.cache = {};
 
 // @param {function(err, data, stat)}
 Hashed.prototype.readFile = function(filename, options, callback) {
@@ -120,19 +120,31 @@ Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
 };
 
 
-// @param {function(err, stat, cached)} callback
 Hashed.prototype.stat = function(filename, callback) {
+  var self = this;
+  this.cache.ready(function (err) {
+    if (err) {
+      return callback(err);
+    }
+
+    self._stat(filename, callback);
+  });
+};
+
+
+// @param {function(err, stat, cached)} callback
+Hashed.prototype._stat = function(filename, callback) {
   filename = node_path.resolve(filename);
 
   var self = this;
   fs.stat(filename, function (err, stat) {
     if (err) {
-      cache.remove(filename);
+      self.cache.remove(filename);
       return callback(err);
     }
 
     var mtime = + stat.mtime;
-    var info = cache.get(filename, mtime);
+    var info = self.cache.get(filename, mtime);
 
     if (info) {
       return callback(null, info, true);
@@ -144,7 +156,7 @@ Hashed.prototype.stat = function(filename, callback) {
       }
 
       stat.hash = hash;
-      cache.set(filename, mtime, stat);
+      self.cache.set(filename, mtime, stat);
       callback(null, stat, false);
     });
   });
