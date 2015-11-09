@@ -1,6 +1,6 @@
 {
   "name": "hashed-fs",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "hashed-fs",
   "main": "index.js",
   "scripts": {
@@ -28,11 +28,15 @@
     "url": "https://github.com/kaelzhang/node-hashed-fs/issues"
   },
   "devDependencies": {
+    "chai": "*",
+    "minimist": "^1.2.0",
     "mocha": "*",
-    "chai": "*"
+    "spawns": "^1.0.1",
+    "tmp": "0.0.28"
   },
   "dependencies": {
     "async": "^1.5.0",
+    "async-cache": "^1.0.0",
     "fs-extra": "^0.24.0",
     "graceful-fs": "^4.1.2",
     "lrucache": "^0.3.0",
