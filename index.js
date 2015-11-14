@@ -1,9 +1,6 @@
 'use strict';
 
 module.exports = hashed;
-hashed.decorate = decorate;
-hashed.Hashed = Hashed;
-hashed.cache = require('./lib/cache');
 
 function hashed (options) {
   options || (options = {});
@@ -18,6 +15,11 @@ var fse = require('fs-extra');
 var make_array = require('make-array');
 var wrap = require('wrap-as-async');
 var async = require('async');
+
+hashed.decorate = wrap(decorate);
+hashed.crypto = wrap(crypto_file);
+hashed.Hashed = Hashed;
+hashed.cache = require('./lib/cache');
 
 
 // Default method to crypto a file according to the file content.
@@ -62,7 +64,7 @@ Hashed.prototype.readFile = function(filename, options, callback) {
     options = {};
   }
 
-  this.stat(filename, function (err, stat) {
+  this.stat(filename, function (err, stat, hash) {
     if (err) {
       return callback(err);
     }
@@ -72,7 +74,7 @@ Hashed.prototype.readFile = function(filename, options, callback) {
         return callback(err);
       }
 
-      callback(null, content, stat);
+      callback(null, content, hash);
     });
   });
 };
@@ -82,14 +84,14 @@ Hashed.prototype.readFile = function(filename, options, callback) {
 Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
   var self = this;
 
-  this.stat(filename, function (err, stat, cached) {
+  this.stat(filename, function (err, stat, hash, cached) {
     if (err) {
       return callback(err);
     }
 
     // If cached, skip copying
     if (cached && !force) {
-      return callback(null, stat, true);
+      return callback(null, hash, true);
     }
 
     var basename = node_path.basename(filename);
@@ -100,7 +102,7 @@ Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
 
       async.waterfall([
         function (sub_done) {
-          self.options.decorate(basename, hashed, sub_done);
+          self.options.decorate(basename, hash, sub_done);
         },
 
         function (decorated, sub_done) {
@@ -114,7 +116,7 @@ Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
         return callback(err);
       }
 
-      callback(err, stat, false);
+      callback(err, hash, false);
     });
   });
 };
@@ -144,10 +146,10 @@ Hashed.prototype._stat = function(filename, callback) {
     }
 
     var mtime = + stat.mtime;
-    var info = self.cache.get(filename, mtime);
+    var hash = self.cache.get(filename, mtime);
 
-    if (info) {
-      return callback(null, info, true);
+    if (hash) {
+      return callback(null, stat, hash, true);
     }
 
     self._createHashed(filename, function (err, hash) {
@@ -155,9 +157,8 @@ Hashed.prototype._stat = function(filename, callback) {
         return callback(err);
       }
 
-      stat.hash = hash;
-      self.cache.set(filename, mtime, stat);
-      callback(null, stat, false);
+      self.cache.set(filename, mtime, hash);
+      callback(null, stat, hash, false);
     });
   });
 };

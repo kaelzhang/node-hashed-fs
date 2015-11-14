@@ -9,13 +9,13 @@ function file (f) {
   return node_path.join(root, f);
 }
 
-var HASH_a = 'ce2e532';
+var HASH_a = 'ce2e532998ddb06b4334620d74e0d938';
 
 describe("fs.stat()", function(){
   it("stat", function(done){
-    hashed().stat(file('dir/b.js'), function (err, stat, cached) {
+    hashed().stat(file('dir/b.js'), function (err, stat, hash, cached) {
       expect(err).to.equal(null);
-      expect(stat.hash).to.equal(HASH_a);
+      expect(hash).to.equal(HASH_a);
       done();
     });
   });
@@ -23,10 +23,10 @@ describe("fs.stat()", function(){
   it("stat cache", function(done){
     var h = hashed();
     var f = file('dir/cache.js');
-    h.stat(f, function (err, stat, cached) {
+    h.stat(f, function (err, stat, hash, cached) {
       expect(err).to.equal(null);
       expect(cached).to.equal(false);
-      h.stat(f, function (err, stat, cached) {
+      h.stat(f, function (err, stat, hash, cached) {
         expect(err).to.equal(null);
         expect(cached).to.equal(true);
         done();
@@ -41,7 +41,7 @@ describe("fs.readFile()", function(){
     hashed().readFile(file('dir/a.js'), function (err, content, hash) {
       expect(err).to.equal(null);
       expect(content.toString()).to.equal('// a');
-      expect(hash.hash).to.equal(HASH_a);
+      expect(hash).to.equal(HASH_a);
       done();
     });
   });
