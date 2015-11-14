@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = hashed;
+hashed.decorate = decorate;
 hashed.Hashed = Hashed;
 hashed.cache = require('./lib/cache');
 
@@ -31,7 +32,7 @@ function crypto_file (filename) {
     .on('error', done)
     .on('end', function () {
       var hash = md5.digest('hex');
-      done(null, hash.slice(0, 7));
+      done(null, hash);
     });
 }
 
@@ -39,7 +40,7 @@ function crypto_file (filename) {
 var REGEX_EXT = /\.[a-z0-9]$/;
 function decorate (basename, hash) {
   return basename.replace(REGEX_EXT, function (ext) {
-    return '.' + hash + ext;
+    return '.' + hash.slice(0, 7) + ext;
   });
 }
 
@@ -91,7 +92,6 @@ Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
       return callback(null, stat, true);
     }
 
-    var counter = 2;
     var basename = node_path.basename(filename);
     async.parallel([
       function (done) {
