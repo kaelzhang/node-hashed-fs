@@ -11,7 +11,7 @@
 
 # hashed-fs
 
-
+Manipulate file with cached content hash.
 
 ## Install
 
@@ -22,8 +22,39 @@ $ npm install hashed-fs --save
 ## Usage
 
 ```js
-var hashed_fs = require('hashed-fs');
+var hfs = require('hashed-fs')(options);
 ```
+
+- **options** `Object`
+  - crypto: `function(filename)` method to crypto a file into a `hash`
+  - decorate: `function()` method to decorate the destination filename by flavoring with file `hash`
+
+Both `options.crypto` and `options.decorate` can be synchronous methods or asynchronous ones by using the common [`this.async()`](https://www.npmjs.com/package/wrap-as-async) style.
+
+### hfs.readFile(filename, callback)
+
+- **callback** `function(err, content, hash)`
+  - `content` ``
+  - `hash` the `options.crypo()`d hash according to the file content.
+
+Reads the file content, and get the stat.
+
+### hfs.copy(filename, dest, callback, force)
+
+- **callback** `function(err, hash)`
+
+Copies the file of `filename` to `dest` along with the hash-decorated `dest`.
+
+If the file is already in the cache, it will skip copying, except that `force` is `true`.
+
+
+### hfs.stat(filename, callback)
+
+- **callback** `function(err, stat, hash, cached)`
+  - `stat` [`fs.Stats`](https://nodejs.org/api/fs.html#fs_class_fs_stats) is the file status of the file
+  - `cached` `Boolean` whether has read from cache.
+
+Gets the file stat, and the hashed result.
 
 ## License
 
