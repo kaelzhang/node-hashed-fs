@@ -29,6 +29,8 @@ var hfs = require('hashed-fs')(options);
   - crypto: `function()` method to crypto a file into a `hash`
   - decorate: `function()` method to decorate the destination filename by flavoring with file `hash`. It can be synchronous methods or asynchronous ones by using the common [`this.async()`](https://www.npmjs.com/package/wrap-as-async) style.
 
+In comparison with the corresponding vanilla `fs` method, each hashed-fs method has an additional parameter `hash` of the callback function, which is the encrypted hash of the file content.
+
 ### options.crypto `function(data)`
 
 This method is an iterator handler. The chunks of the file content, i.e, `data`, will be passed into `options.crypto` one by one. `data` has the structure below:
@@ -40,9 +42,16 @@ This method is an iterator handler. The chunks of the file content, i.e, `data`,
 }
 ```
 
-If `data.done` is `true`, it means the last chunk of data received, and the `options.crypto` should return the crypted result.
+If `data.done` is `true`, it means the last chunk of data received, and the `options.crypto` should return the encrypted result.
 
 ### hfs.readFile(filename, callback)
+
+```js
+hfs.readFile('/path/to/a.js', function(err, content, hash){
+  content;  // '// a'
+  hash;     // 'ce2e532998ddb06b4334620d74e0d938'
+});
+```
 
 - **callback** `function(err, content, hash)`
   - `content` ``
@@ -58,6 +67,22 @@ Copies the file of `filename` to `dest` along with the hash-decorated `dest`.
 
 If the file is already in the cache, it will skip copying, except that `force` is `true`.
 
+```js
+hfs.copy('/path/to/a.js', '/dest/to', function(err, hash){
+  hash; // 'ce2e532998ddb06b4334620d74e0d938'
+});
+```
+
+Then the `/dest/to` folder will have **TWO** files:
+
+```sh
+/dest/to
+       | -- a.js
+       | -- a-ce2e532.js
+```
+
+`ce2e532` is the first seven charactors of the `hash`. By changing the default `options.decorate` method, you could define your custom pathname to the destination.
+
 
 ### hfs.stat(filename, callback)
 
@@ -66,6 +91,12 @@ If the file is already in the cache, it will skip copying, except that `force` i
   - `cached` `Boolean` whether has read from cache.
 
 Gets the file stat, and the hashed result.
+
+
+### hfs.writeFile(filename, content, callback)
+
+Similar to `hfs.copy()`, this method will write **TWO** files
+
 
 ## License
 
