@@ -23,19 +23,17 @@ hashed.cache = require('./lib/cache');
 
 
 // Default method to crypto a file according to the file content.
-function crypto_file (filename) {
-  var done = this.async();
-
+function crypto_iterator () {
   var md5 = crypto.createHash('md5');
-  var rs = fs.createReadStream(filename)
-    .on('data', function (data) {
-      md5.update(data);
-    })
-    .on('error', done)
-    .on('end', function () {
-      var hash = md5.digest('hex');
-      done(null, hash);
-    });
+  return function (data) {
+    if (data.value) {
+      return md5.update(data.value);
+    }
+
+    if (data.done) {
+      return md5.digest('hex');
+    }
+  }
 }
 
 
@@ -51,7 +49,7 @@ function decorate (basename, hash) {
 // - crypto: `function()`
 function Hashed (options) {
   this.options = options;
-  this.options.crypto = wrap(options.crypto || crypto_file);
+  this.options.crypto = options.crypto || crypto_iterator();
   this.options.decorate = wrap(options.decorate || decorate);
   this.cache = hashed.cache(this.options.cache_file);
 }
@@ -122,6 +120,55 @@ Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
 };
 
 
+Hashed.prototype._cryto_file = function(filename, callback) {
+  var crypto_iterator = this.options.crypto;
+  fs.createReadStream(filename)
+    .on('data', function (data) {
+      crypto_iterator({
+        value: data
+      });
+    })
+    .on('error', callback)
+    .on('end', function () {
+      var hash = crypto_iterator({
+        done: true
+      });
+      callback(null, hash);
+    });
+};
+
+
+Hashed.prototype.writeFile = function(dest_filename, content, callback) {
+  var hash = this.options.crypto({
+    done: true,
+    value: content
+  });
+
+  async.parallel([
+    function (done) {
+      fs.writeFile(dest_filename, content, done);
+    },
+
+    async.waterfall([
+      function (sub_done) {
+        self.options.decorate(dest_filename, hash, sub_done);
+      },
+
+      function (decorated, sub_done) {
+        fs.writeFile(decorated, content, sub_done);
+      }
+    ], done)
+    
+  ], function (err) {
+    if (err) {
+      return callback(err);
+    }
+
+    callback(err, hash);
+  });
+};
+
+
 Hashed.prototype.stat = function(filename, callback) {
   var self = this;
   this.cache.ready(function (err) {
@@ -174,5 +221,5 @@ Hashed.prototype._createHashed = function(filename, callback) {
     callback(err, result);
   }
 
-  this.options.crypto(filename, once);
+  this.options._crypto_file(filename, once);
 };

@@ -26,10 +26,21 @@ var hfs = require('hashed-fs')(options);
 ```
 
 - **options** `Object`
-  - crypto: `function(filename)` method to crypto a file into a `hash`
-  - decorate: `function()` method to decorate the destination filename by flavoring with file `hash`
+  - crypto: `function()` method to crypto a file into a `hash`
+  - decorate: `function()` method to decorate the destination filename by flavoring with file `hash`. It can be synchronous methods or asynchronous ones by using the common [`this.async()`](https://www.npmjs.com/package/wrap-as-async) style.
 
-Both `options.crypto` and `options.decorate` can be synchronous methods or asynchronous ones by using the common [`this.async()`](https://www.npmjs.com/package/wrap-as-async) style.
+### options.crypto `function(data)`
+
+This method is an iterator handler. The chunks of the file content, i.e, `data`, will be passed into `options.crypto` one by one. `data` has the structure below:
+
+```js
+{
+  value: <Buffer|String>, // the chunk of data
+  done: <true|false>      // whether is the last chunk of data
+}
+```
+
+If `data.done` is `true`, it means the last chunk of data received, and the `options.crypto` should return the crypted result.
 
 ### hfs.readFile(filename, callback)
 
