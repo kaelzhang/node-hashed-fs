@@ -13,6 +13,10 @@
 
 Manipulate file with cached content hash.
 
+hashed-fs will create hash string from the file content, cache it, and pass it to the callback of each instance method.
+
+All hashed-fs instances in one node session will share the same cache.
+
 ## Install
 
 ```sh
@@ -23,6 +27,10 @@ $ npm install hashed-fs --save
 
 ```js
 var hfs = require('hashed-fs')(options);
+hfs.stat('/path/to/a.js', function(err, stat, hash){
+  stat; // is the nodejs `fs.Stat` object
+  hash; // the result hash
+});
 ```
 
 - **options** `Object`
@@ -31,9 +39,10 @@ var hfs = require('hashed-fs')(options);
 
 In comparison with the corresponding vanilla `fs` method, each hashed-fs method has an additional parameter `hash` of the callback function, which is the encrypted hash of the file content.
 
-### options.crypto `function(data)`
+#### options.crypto `function(data)`
 
-This method is an iterator handler. The chunks of the file content, i.e, `data`, will be passed into `options.crypto` one by one. `data` has the structure below:
+This method is an iterator handler generater which should returns a function.
+The chunks of the file content, i.e, `data`, will be passed into `options.crypto()` one by one. `data` has the structure below:
 
 ```js
 {
@@ -43,6 +52,30 @@ This method is an iterator handler. The chunks of the file content, i.e, `data`,
 ```
 
 If `data.done` is `true`, it means the last chunk of data received, and the `options.crypto` should return the encrypted result.
+
+By default, it will encrypt the file content using md5 algorithm, but you could specify it by yourself.
+
+For example, 
+```js
+var crypto = require('crypto');
+
+function sha256 () {
+  var shasum = crypto.createHash('sha256');
+  return function(data){
+    if (data.value) {
+      shasum.update(data.value);
+    }
+
+    if (data.done) {
+      return shasum.digest('hex');
+    }
+  }
+}
+
+var hfs = require('hashed-fs')({
+  crypto: sha256
+});
+```
 
 ### hfs.readFile(filename, callback)
 

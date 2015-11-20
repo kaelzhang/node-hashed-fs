@@ -47,7 +47,7 @@ function decorate (basename, hash) {
 // - crypto: `function()`
 function Hashed (options) {
   this.options = options;
-  this.options.crypto = options.crypto || crypto_iterator();
+  this.options.crypto = options.crypto || crypto_iterator;
   this.options.decorate = wrap(options.decorate || decorate);
   this.cache = hashed.cache(this.options.cache_file);
 }
@@ -119,7 +119,7 @@ Hashed.prototype.copy = function(filename, dest, callback, force) {
 
 
 Hashed.prototype.writeFile = function(dest_filename, content, callback) {
-  var hash = this.options.crypto({
+  var hash = this.options.crypto()({
     done: true,
     value: content
   });
@@ -153,7 +153,7 @@ Hashed.prototype.writeFile = function(dest_filename, content, callback) {
 
 
 Hashed.prototype._encryt_file = function(filename, callback) {
-  var crypto_iterator = this.options.crypto;
+  var crypto_iterator = this.options.crypto();
   fs.createReadStream(filename)
     .on('data', function (data) {
       crypto_iterator({
