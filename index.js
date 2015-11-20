@@ -48,8 +48,8 @@ function decorate (basename, hash) {
 function Hashed (options) {
   this.options = options;
   this.options.crypto = options.crypto || crypto_iterator;
-  this.options.decorate = wrap(options.decorate || decorate);
   this.cache = hashed.cache(this.options.cache_file);
+  this.decorate = wrap(options.decorate || decorate);
 }
 
 
@@ -98,7 +98,7 @@ Hashed.prototype.copy = function(filename, dest, callback, force) {
       function (done) {
         async.waterfall([
           function (sub_done) {
-            self.options.decorate(dest, hash, sub_done);
+            self.decorate(dest, hash, sub_done);
           },
 
           function (decorated, sub_done) {
@@ -133,7 +133,7 @@ Hashed.prototype.writeFile = function(dest_filename, content, callback) {
     function (done) {
       async.waterfall([
         function (sub_done) {
-          self.options.decorate(dest_filename, hash, sub_done);
+          self.decorate(dest_filename, hash, sub_done);
         },
 
         function (decorated, sub_done) {
