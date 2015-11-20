@@ -127,7 +127,7 @@ Hashed.prototype.writeFile = function(dest_filename, content, callback) {
   var self = this;
   async.parallel([
     function (done) {
-      fs.writeFile(dest_filename, content, done);
+      fse.outputFile(dest_filename, content, done);
     },
 
     function (done) {
@@ -137,7 +137,7 @@ Hashed.prototype.writeFile = function(dest_filename, content, callback) {
         },
 
         function (decorated, sub_done) {
-          fs.writeFile(decorated, content, sub_done);
+          fse.outputFile(decorated, content, sub_done);
         }
       ], done)
     }
