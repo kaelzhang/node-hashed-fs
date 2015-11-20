@@ -77,7 +77,7 @@ Hashed.prototype.readFile = function(filename, options, callback) {
 
 
 // @param {function(err, stat, skipped)}
-Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
+Hashed.prototype.copy = function(filename, dest, callback, force) {
   var self = this;
 
   this.stat(filename, function (err, stat, hash, cached) {
@@ -90,21 +90,19 @@ Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
       return callback(null, hash, true);
     }
 
-    var basename = node_path.basename(filename);
     async.parallel([
       function (done) {
-        fse.copy(filename, node_path.join(dest_dir, basename), done);
+        fse.copy(filename, dest, done);
       },
 
       function (done) {
         async.waterfall([
           function (sub_done) {
-            self.options.decorate(basename, hash, sub_done);
+            self.options.decorate(dest, hash, sub_done);
           },
 
           function (decorated, sub_done) {
-            var dest = node_path.join(dest_dir, decorated);
-            fse.copy(filename, dest, sub_done);
+            fse.copy(filename, decorated, sub_done);
           }
         ], done)
       }
@@ -117,24 +115,6 @@ Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
       callback(err, hash, false);
     });
   });
-};
-
-
-Hashed.prototype._encryt_file = function(filename, callback) {
-  var crypto_iterator = this.options.crypto;
-  fs.createReadStream(filename)
-    .on('data', function (data) {
-      crypto_iterator({
-        value: data
-      });
-    })
-    .on('error', callback)
-    .on('end', function () {
-      var hash = crypto_iterator({
-        done: true
-      });
-      callback(null, hash);
-    });
 };
 
 
@@ -169,6 +149,24 @@ Hashed.prototype.writeFile = function(dest_filename, content, callback) {
 
     callback(err, hash);
   });
+};
+
+
+Hashed.prototype._encryt_file = function(filename, callback) {
+  var crypto_iterator = this.options.crypto;
+  fs.createReadStream(filename)
+    .on('data', function (data) {
+      crypto_iterator({
+        value: data
+      });
+    })
+    .on('error', callback)
+    .on('end', function () {
+      var hash = crypto_iterator({
+        done: true
+      });
+      callback(null, hash);
+    });
 };
 
 

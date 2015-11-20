@@ -3,6 +3,9 @@
 var expect = require('chai').expect;
 var hashed = require('../');
 var node_path = require('path');
+var fs = require('fs');
+var tmp = require('tmp');
+
 
 var root = node_path.join(__dirname, 'fixtures');
 function file (f) {
@@ -43,6 +46,47 @@ describe("fs.readFile()", function(){
       expect(content.toString()).to.equal('// a');
       expect(hash).to.equal(HASH_a);
       done();
+    });
+  });
+});
+
+
+describe("fs.writeFile()", function(){
+  it("should write 2 files", function(done){
+    tmp.dir(function (err, dir) {
+      expect(err).to.equal(null);
+
+      var dest = node_path.join(dir, 'a.js');
+      var decorated_dest = node_path.join(dir, 'a-' + HASH_a.slice(0, 7) + '.js');
+      hashed().writeFile(dest, '// a', function (err, hash) {
+        expect(err).to.equal(null);
+        expect(hash).to.equal(HASH_a);
+        expect(fs.existsSync(dest)).to.equal(true);
+        expect(fs.existsSync(decorated_dest)).to.equal(true);
+        done()
+      });
+    });
+  });
+});
+
+
+describe("fs.copy()", function(){
+  it("should copy 2 files", function(done){
+    tmp.dir(function (err, dir) {
+      expect(err).to.equal(null);
+
+      var from = node_path.join(dir, 'a.js');
+      fs.writeFileSync(from, '// a');
+
+      var dest = node_path.join(dir, 'copy', 'a.js');
+      var decorated_dest = node_path.join(dir, 'copy', 'a-' + HASH_a.slice(0, 7) + '.js');
+      hashed().copy(from, dest, function (err, hash) {
+        expect(err).to.equal(null);
+        expect(hash).to.equal(HASH_a);
+        expect(fs.existsSync(dest)).to.equal(true);
+        expect(fs.existsSync(decorated_dest)).to.equal(true);
+        done()
+      });
     });
   });
 });
