@@ -16,8 +16,6 @@ var make_array = require('make-array');
 var wrap = require('wrap-as-async');
 var async = require('async');
 
-hashed.decorate = wrap(decorate);
-hashed.crypto = wrap(crypto_file);
 hashed.Hashed = Hashed;
 hashed.cache = require('./lib/cache');
 
@@ -27,7 +25,7 @@ function crypto_iterator () {
   var md5 = crypto.createHash('md5');
   return function (data) {
     if (data.value) {
-      return md5.update(data.value);
+      md5.update(data.value);
     }
 
     if (data.done) {
@@ -37,10 +35,10 @@ function crypto_iterator () {
 }
 
 
-var REGEX_EXT = /\.[a-z0-9]$/;
+var REGEX_EXT = /\.[a-z0-9]+$/;
 function decorate (basename, hash) {
   return basename.replace(REGEX_EXT, function (ext) {
-    return '.' + hash.slice(0, 7) + ext;
+    return '-' + hash.slice(0, 7) + ext;
   });
 }
 
@@ -98,16 +96,18 @@ Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
         fse.copy(filename, node_path.join(dest_dir, basename), done);
       },
 
-      async.waterfall([
-        function (sub_done) {
-          self.options.decorate(basename, hash, sub_done);
-        },
+      function (done) {
+        async.waterfall([
+          function (sub_done) {
+            self.options.decorate(basename, hash, sub_done);
+          },
 
-        function (decorated, sub_done) {
-          var dest = node_path.join(dest_dir, decorated_basename);
-          fse.copy(filename, dest, sub_done);
-        }
-      ], done)
+          function (decorated, sub_done) {
+            var dest = node_path.join(dest_dir, decorated);
+            fse.copy(filename, dest, sub_done);
+          }
+        ], done)
+      }
       
     ], function (err) {
       if (err) {
@@ -120,7 +120,7 @@ Hashed.prototype.copy = function(filename, dest_dir, callback, force) {
 };
 
 
-Hashed.prototype._cryto_file = function(filename, callback) {
+Hashed.prototype._encryt_file = function(filename, callback) {
   var crypto_iterator = this.options.crypto;
   fs.createReadStream(filename)
     .on('data', function (data) {
@@ -144,20 +144,23 @@ Hashed.prototype.writeFile = function(dest_filename, content, callback) {
     value: content
   });
 
+  var self = this;
   async.parallel([
     function (done) {
       fs.writeFile(dest_filename, content, done);
     },
 
-    async.waterfall([
-      function (sub_done) {
-        self.options.decorate(dest_filename, hash, sub_done);
-      },
+    function (done) {
+      async.waterfall([
+        function (sub_done) {
+          self.options.decorate(dest_filename, hash, sub_done);
+        },
 
-      function (decorated, sub_done) {
-        fs.writeFile(decorated, content, sub_done);
-      }
-    ], done)
+        function (decorated, sub_done) {
+          fs.writeFile(decorated, content, sub_done);
+        }
+      ], done)
+    }
     
   ], function (err) {
     if (err) {
@@ -221,5 +224,5 @@ Hashed.prototype._createHashed = function(filename, callback) {
     callback(err, result);
   }
 
-  this.options._crypto_file(filename, once);
+  this._encryt_file(filename, once);
 };
