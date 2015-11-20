@@ -11,7 +11,7 @@
 
 # hashed-fs
 
-Manipulate file with cached content hash.
+Gracefully and safely manipulate file with cached content hash. 
 
 hashed-fs will create hash string from the file content, cache it, and pass it to the callback of each instance method.
 
