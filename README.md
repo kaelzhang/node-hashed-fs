@@ -35,7 +35,7 @@ hfs.stat('/path/to/a.js', function(err, stat, hash){
 
 - **options** `Object`
   - crypto: `function()` method to crypto a file into a `hash`
-  - decorate: `function()` method to decorate the destination filename by flavoring with file `hash`. It can be synchronous methods or asynchronous ones by using the common [`this.async()`](https://www.npmjs.com/package/wrap-as-async) style.
+  - decorate: `function()` method to decorate the destination filename by flavoring with file `hash`.
 
 In comparison with the corresponding vanilla `fs` method, each hashed-fs method has an additional parameter `hash` of the callback function, which is the encrypted hash of the file content.
 
@@ -53,7 +53,7 @@ The chunks of the file content, i.e, `data`, will be passed into `options.crypto
 
 If `data.done` is `true`, it means the last chunk of data received, and the `options.crypto` should return the encrypted result.
 
-By default, it will encrypt the file content using md5 algorithm, but you could specify it by yourself.
+By default, it encrypts the file content using md5 algorithm, but you could specify it by yourself.
 
 For example, 
 ```js
@@ -77,6 +77,12 @@ var hfs = require('hashed-fs')({
 });
 ```
 
+#### options.decorate `function(filename, hash)`
+
+Defines how `hashed-fs` should add hash string to the filename.
+
+It can be synchronous methods or asynchronous ones by using the common [`this.async()`](https://www.npmjs.com/package/wrap-as-async) style.
+
 ### hfs.readFile(filename, callback)
 
 ```js
@@ -92,7 +98,7 @@ hfs.readFile('/path/to/a.js', function(err, content, hash){
 
 Reads the file content, and get the stat.
 
-### hfs.copy(filename, dest, callback, force)
+### hfs.copy(filename, dest, callback [, force=false])
 
 - **callback** `function(err, hash)`
 
