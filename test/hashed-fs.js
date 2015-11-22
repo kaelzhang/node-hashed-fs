@@ -80,12 +80,20 @@ describe("fs.copy()", function(){
 
       var dest = node_path.join(dir, 'copy', 'a.js');
       var decorated_dest = node_path.join(dir, 'copy', 'a-' + HASH_a.slice(0, 7) + '.js');
-      hashed().copy(from, dest, function (err, hash) {
+      var hfs = hashed();
+      hfs.copy(from, dest, function (err, hash) {
         expect(err).to.equal(null);
         expect(hash).to.equal(HASH_a);
         expect(fs.existsSync(dest)).to.equal(true);
         expect(fs.existsSync(decorated_dest)).to.equal(true);
-        done()
+
+        var map = hfs.cache.map();
+        Object.keys(map).forEach(function (file) {
+          var hash = map[file];
+          expect(hash).to.equal(HASH_a);
+        });
+
+        done();
       });
     });
   });
