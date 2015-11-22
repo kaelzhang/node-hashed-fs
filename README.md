@@ -36,6 +36,7 @@ hfs.stat('/path/to/a.js', function(err, stat, hash){
 - **options** `Object`
   - crypto: `function()` method to crypto a file into a `hash`
   - decorate: `function()` method to decorate the destination filename by flavoring with file `hash`.
+  - cache_file `path=` if specified, hashd-fs will load the cache file at the beginning
 
 In comparison with the corresponding vanilla `fs` method, each hashed-fs method has an additional parameter `hash` of the callback function, which is the encrypted hash of the file content.
 
@@ -136,6 +137,15 @@ Gets the file stat, and the hashed result.
 
 Similar to `hfs.copy()`, this method will write **TWO** files
 
+
+### hfs.cache.save(callback)
+
+if `options.cache_file` is specified, it will save the cache to the file.
+
+
+### hfs.cache.map()
+
+Returns the `{filename: hash}` object.
 
 ## License
 
