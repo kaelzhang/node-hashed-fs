@@ -52,7 +52,25 @@ describe("fs.readFile()", function(){
 
 
 describe("fs.writeFile()", function(){
-  it("should write 2 files", function(done){
+  it("should write 2 files, with options.extra_write", function(done){
+    tmp.dir(function (err, dir) {
+      expect(err).to.equal(null);
+
+      var dest = node_path.join(dir, 'a.js');
+      var decorated_dest = node_path.join(dir, 'a-' + HASH_a.slice(0, 7) + '.js');
+      hashed({
+        extra_write: true
+      }).writeFile(dest, '// a', function (err, hash) {
+        expect(err).to.equal(null);
+        expect(hash).to.equal(HASH_a);
+        expect(fs.existsSync(dest)).to.equal(true);
+        expect(fs.existsSync(decorated_dest)).to.equal(true);
+        done()
+      });
+    });
+  });
+
+  it("should write 1 file, without options.extra_write", function(done){
     tmp.dir(function (err, dir) {
       expect(err).to.equal(null);
 
@@ -61,7 +79,7 @@ describe("fs.writeFile()", function(){
       hashed().writeFile(dest, '// a', function (err, hash) {
         expect(err).to.equal(null);
         expect(hash).to.equal(HASH_a);
-        expect(fs.existsSync(dest)).to.equal(true);
+        expect(fs.existsSync(dest)).to.equal(false);
         expect(fs.existsSync(decorated_dest)).to.equal(true);
         done()
       });

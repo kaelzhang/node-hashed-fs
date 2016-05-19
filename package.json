@@ -1,7 +1,7 @@
 {
   "name": "hashed-fs",
-  "version": "1.5.5",
-  "description": "hashed-fs",
+  "version": "2.0.0",
+  "description": "Handle file system with content hashing",
   "main": "index.js",
   "scripts": {
     "test": "mocha --reporter spec ./test/*.js"

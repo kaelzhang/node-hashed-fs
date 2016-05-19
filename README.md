@@ -11,7 +11,7 @@
 
 # hashed-fs
 
-Gracefully and safely manipulate file with cached content hash. 
+Gracefully and safely manipulate file with cached content hash.
 
 hashed-fs will create hash string from the file content, cache it, and pass it to the callback of each instance method.
 
@@ -37,6 +37,7 @@ hfs.stat('/path/to/a.js', function(err, stat, hash){
   - crypto: `function()` method to crypto a file into a `hash`
   - decorate: `function()` method to decorate the destination filename by flavoring with file `hash`.
   - cache_file `path=` if specified, hashd-fs will load the cache file at the beginning
+  - extra_write `Boolean=false` if true, it will also write to a filename without the hashed string decorated.
 
 In comparison with the corresponding vanilla `fs` method, each hashed-fs method has an additional parameter `hash` of the callback function, which is the encrypted hash of the file content.
 
@@ -56,7 +57,7 @@ If `data.done` is `true`, it means the last chunk of data received, and the `opt
 
 By default, it encrypts the file content using md5 algorithm, but you could specify it by yourself.
 
-For example, 
+For example,
 ```js
 var crypto = require('crypto');
 
@@ -117,7 +118,7 @@ Then the `/dest/to` folder will have **TWO** files:
 
 ```sh
 /dest/to
-       | -- a.js
+       | -- a.js          # if options.extra_write is true
        | -- a-ce2e532.js
 ```
 

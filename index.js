@@ -106,7 +106,7 @@ Hashed.prototype.copy = function(filename, dest, callback, force) {
           }
         ], done)
       }
-      
+
     ], function (err) {
       if (err) {
         return callback(err);
@@ -125,11 +125,7 @@ Hashed.prototype.writeFile = function(dest_filename, content, callback) {
   });
 
   var self = this;
-  async.parallel([
-    function (done) {
-      fse.outputFile(dest_filename, content, done);
-    },
-
+  var tasks = [
     function (done) {
       async.waterfall([
         function (sub_done) {
@@ -141,8 +137,15 @@ Hashed.prototype.writeFile = function(dest_filename, content, callback) {
         }
       ], done)
     }
-    
-  ], function (err) {
+  ]
+
+  if (this.options.extra_write) {
+    tasks.push(function (done) {
+      fse.outputFile(dest_filename, content, done);
+    })
+  }
+
+  async.parallel(tasks, function (err) {
     if (err) {
       return callback(err);
     }
