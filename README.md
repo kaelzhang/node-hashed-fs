@@ -37,7 +37,7 @@ hfs.stat('/path/to/a.js', function(err, stat, hash){
   - crypto: `function()` method to crypto a file into a `hash`
   - decorate: `function()` method to decorate the destination filename by flavoring with file `hash`.
   - cache_file `path=` if specified, hashd-fs will load the cache file at the beginning
-  - extra_write `Boolean=false` if true, it will also write to a filename without the hashed string decorated.
+  - only_hashed `Boolean=false` if true, it will only write to the hashed filename. By default, it will write two files.
 
 In comparison with the corresponding vanilla `fs` method, each hashed-fs method has an additional parameter `hash` of the callback function, which is the encrypted hash of the file content.
 
@@ -118,7 +118,7 @@ Then the `/dest/to` folder will have **TWO** files:
 
 ```sh
 /dest/to
-       | -- a.js          # if options.extra_write is true
+       | -- a.js          # if options.only_hashed is not true
        | -- a-ce2e532.js
 ```
 

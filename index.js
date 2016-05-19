@@ -139,7 +139,7 @@ Hashed.prototype.writeFile = function(dest_filename, content, callback) {
     }
   ]
 
-  if (this.options.extra_write) {
+  if (!this.options.only_hashed) {
     tasks.push(function (done) {
       fse.outputFile(dest_filename, content, done);
     })
