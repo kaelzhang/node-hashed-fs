@@ -1,6 +1,6 @@
 {
   "name": "hashed-fs",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Handle file system with content hashing",
   "main": "index.js",
   "scripts": {

@@ -18,6 +18,7 @@ var async = require('async');
 
 hashed.Hashed = Hashed;
 hashed.cache = require('./lib/cache');
+hashed.decorate = decorate
 
 
 // Default method to crypto a file according to the file content.
