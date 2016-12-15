@@ -36,7 +36,7 @@ function crypto_iterator () {
 }
 
 
-var REGEX_EXT = /\.[a-z0-9]+$/;
+var REGEX_EXT = /\.[a-z0-9]+(?:$|\?)/;
 function decorate (basename, hash) {
   return basename.replace(REGEX_EXT, function (ext) {
     return '-' + hash.slice(0, 7) + ext;
