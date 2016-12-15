@@ -52,15 +52,13 @@ describe("fs.readFile()", function(){
 
 
 describe("fs.writeFile()", function(){
-  it("should write 2 files, with options.extra_write", function(done){
+  it("should write 2 files, without options.only_hashed", function(done){
     tmp.dir(function (err, dir) {
       expect(err).to.equal(null);
 
       var dest = node_path.join(dir, 'a.js');
       var decorated_dest = node_path.join(dir, 'a-' + HASH_a.slice(0, 7) + '.js');
-      hashed({
-        extra_write: true
-      }).writeFile(dest, '// a', function (err, hash) {
+      hashed().writeFile(dest, '// a', function (err, hash) {
         expect(err).to.equal(null);
         expect(hash).to.equal(HASH_a);
         expect(fs.existsSync(dest)).to.equal(true);
@@ -70,13 +68,15 @@ describe("fs.writeFile()", function(){
     });
   });
 
-  it("should write 1 file, without options.extra_write", function(done){
+  it("should write 1 file, with options.only_hashed = true", function(done){
     tmp.dir(function (err, dir) {
       expect(err).to.equal(null);
 
       var dest = node_path.join(dir, 'a.js');
       var decorated_dest = node_path.join(dir, 'a-' + HASH_a.slice(0, 7) + '.js');
-      hashed().writeFile(dest, '// a', function (err, hash) {
+      hashed({
+        only_hashed: true
+      }).writeFile(dest, '// a', function (err, hash) {
         expect(err).to.equal(null);
         expect(hash).to.equal(HASH_a);
         expect(fs.existsSync(dest)).to.equal(false);
